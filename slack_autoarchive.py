@@ -14,7 +14,9 @@ import json
 import requests
 from config import get_channel_reaper_settings
 from utils import get_logger
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class ChannelReaper():
     """
@@ -68,7 +70,10 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         """ Helper function to query the slack api and handle errors and rate limit. """
         # pylint: disable=no-member
         uri = 'https://slack.com/api/' + api_endpoint
-        payload['token'] = self.settings.get('slack_token')
+        if (api_endpoint == 'channels.history'):
+            payload['token'] = self.settings.get('user_slack_token')
+        else:
+            payload['token'] = self.settings.get('bot_slack_token')
         try:
             # Force request to take at least 1 second. Slack docs state:
             # > In general we allow applications that integrate with Slack to send
@@ -186,10 +191,11 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         """ Send a message to a channel or user. """
         payload = {
             'channel': channel_id,
-            'username': 'channel_reaper',
+            'username': 'Channel Cleaner Bot',
             'icon_emoji': ':ghost:',
             'text': message
         }
+        print(payload)
         api_endpoint = 'chat.postMessage'
         self.slack_api_http(api_endpoint=api_endpoint,
                             payload=payload,
@@ -233,9 +239,6 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         archived_channels = []
 
         for channel in self.get_all_channels():
-            sys.stdout.write('.')
-            sys.stdout.flush()
-
             channel_whitelisted = self.is_channel_whitelisted(
                 channel, whitelist_keywords)
             channel_disused = self.is_channel_disused(

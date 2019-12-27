@@ -3,3 +3,4 @@ flake8
 pylint
 yapf
 pytest
+python-dotenv
