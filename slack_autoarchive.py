@@ -192,10 +192,8 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         payload = {
             'channel': channel_id,
             'username': 'Channel Cleaner Bot',
-            'icon_emoji': ':ghost:',
             'text': message
         }
-        print(payload)
         api_endpoint = 'chat.postMessage'
         self.slack_api_http(api_endpoint=api_endpoint,
                             payload=payload,
