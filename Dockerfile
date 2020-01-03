@@ -6,9 +6,6 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-ENV SLACK_TOKEN=''
 ENV DRY_RUN=true
 
-CMD SLACK_TOKEN=${SLACK_TOKEN} \
-  DRY_RUN=${DRY_RUN} \
-  python slack_autoarchive.py
+CMD DRY_RUN=${DRY_RUN} python slack_autoarchive.py

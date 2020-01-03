@@ -1,30 +1,46 @@
-# Autoarchive unused slack channels
+# Autoarchive Unused Slack Channels
 
 ## Requirements
 
 - python3
 - Install requirements.txt ( `pip install -r requirements.txt` )
 - An [OAuth token](https://api.slack.com/docs/oauth) from a [Slack app](https://api.slack.com/slack-apps) on your workspace that has the following permission scopes:
-  - `channels:history`
-  - `channels:read`
-  - `channels:write`
-  - `chat:write:bot`
-  - `chat:write:user`
+
+#### Bot Token Scopes
+
+- `channels:read`
+- `channels:manage`
+- `chat:write`
+- `groups:read`
+
+#### User Token Scopes
+
+- `channels:history`
 
 ## Example Usages
 
-The `SLACK_TOKEN` must be exposed as a environment variable before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
+`USER_SLACK_TOKEN` and `BOT_SLACK_TOKEN` must be exposed as environment variables before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
 ```
 # Run the script in dry run archive mode...This will output a list of channels that will be archived.
-SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
+USER_SLACK_TOKEN=<USER_SLACK_TOKEN> BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
 
 # Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
-DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
+DRY_RUN=false USER_SLACK_TOKEN=<USER_SLACK_TOKEN> BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
 ```
+
+As an alternative to passing in environment variables through the command line, add a `.env` file to your project root:
+
+```
+USER_SLACK_TOKEN=xoxp-
+BOT_SLACK_TOKEN=xoxb-
+ADMIN_CHANNEL=
+```
+
+However, it may be best to always pass the `DRY_RUN` variable through the command line to avoid accidental archives.
 
 ## How can I exempt my channel from being archived?
 
-You can add the string '%noarchive' to your channel purpose or topic. (There is also a whitelist file or env variable if you prefer.)
+You can add the string 'noarchive' to your channel purpose or topic. (There is also a whitelist file or env variable if you prefer.)
 
 ## What Channels Will Be Archived
 
@@ -35,7 +51,7 @@ A channel will be archived by this script is it doesn't meet any of the followin
 
 ## What Happens When A Channel Is Archived By This Script
 
-- *Don't panic! It can be unarchived by following [these instructions](https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel) However all previous members would be kicked out of the channel and not be automatically invited back.
+- *Don't panic! It can be unarchived by following [these instructions](https://slack.com/intl/en-ca/help/articles/201563847#unarchive-a-channel) However all previous members would be kicked out of the channel and not be automatically invited back.
 - A message will be dropped into the channel saying the channel is being auto archived because of low activity
 - You can always whitelist a channel if it indeed needs to be kept despite meeting the auto-archive criteria.
 
@@ -58,7 +74,7 @@ To provide a custom message, simply edit `templates.json`.
 `docker build --tag autoarchive .`
 - run the container (dryrun is set to true by default)
 
-`docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> autoarchive`
+`docker run autoarchive`
 - if your ready to archive run
 
-`docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> -e DRY_RUN=false autoarchive`
+`docker run -e DRY_RUN=false autoarchive`

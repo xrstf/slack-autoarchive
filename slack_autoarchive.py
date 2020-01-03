@@ -50,7 +50,7 @@ class ChannelReaper():
 This channel has had no activity for %d days. It is being auto-archived.
 If you feel this is a mistake you can <https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel|unarchive this channel>.
 This will bring it back at any point. In the future, you can add '%%noarchive' to your channel topic or purpose to avoid being archived.
-This script was run from this repo: https://github.com/Symantec/slack-autoarchive
+This script was run from a fork of this repo: https://github.com/Symantec/slack-autoarchive
 """ % self.settings.get('days_inactive')
         alerts = {'channel_template': archive_msg}
         if os.path.isfile('templates.json'):
@@ -70,10 +70,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         """ Helper function to query the slack api and handle errors and rate limit. """
         # pylint: disable=no-member
         uri = 'https://slack.com/api/' + api_endpoint
-        if (api_endpoint == 'channels.history'):
-            payload['token'] = self.settings.get('user_slack_token')
-        else:
-            payload['token'] = self.settings.get('bot_slack_token')
+        payload['token'] = self.settings.get('bot_slack_token')
         try:
             # Force request to take at least 1 second. Slack docs state:
             # > In general we allow applications that integrate with Slack to send
@@ -211,6 +208,16 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
             payload = {'channel': channel['id']}
             self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
             self.logger.info(stdout_message)
+    
+    def join_channel(self, channel_name, channel_id, message):
+        """ Joins a channel so that the bot has access to message and archive. """
+        join_api_endpoint='channels.join' 
+        message_api_endpoin='channles.message'
+        join_payload = {'name': channel_name}
+        channel_info = self.slack_api_http(api_endpoint=join_api_endpoint, payload=join_payload)
+        already_in_channel = channel_info.get('already_in_channel', False)
+        if not already_in_channel:
+            self.send_channel_message(channel_id, message)
 
     def send_admin_report(self, channels):
         """ Optionally this will message admins with which channels were archived. """
@@ -237,6 +244,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         archived_channels = []
 
         for channel in self.get_all_channels():
+            self.join_channel(channel['name'], channel['id'], alert_templates['join_channel_template'])
             channel_whitelisted = self.is_channel_whitelisted(
                 channel, whitelist_keywords)
             channel_disused = self.is_channel_disused(
