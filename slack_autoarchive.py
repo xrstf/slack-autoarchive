@@ -105,7 +105,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
     def get_all_channels(self):
         """ Get a list of all non-archived channels from slack channels.list. """
         payload = {'exclude_archived': 1}
-        api_endpoint = 'channels.list'
+        api_endpoint = 'conversations.list'
         channels = self.slack_api_http(api_endpoint=api_endpoint,
                                        payload=payload)['channels']
         all_channels = []
@@ -130,6 +130,8 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             if 'subtype' in message and message[
                     'subtype'] in self.settings.get('skip_subtypes'):
                 continue
+            if 'bot_id' in message: # is a bot message
+                continue
             last_message_datetime = datetime.fromtimestamp(float(
                 message['ts']))
             break
@@ -145,14 +147,15 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
     def is_channel_disused(self, channel, too_old_datetime):
         """ Return True or False depending on if a channel is "active" or not.  """
         num_members = channel['num_members']
-        payload = {'inclusive': 0, 'oldest': 0, 'count': 50}
-        api_endpoint = 'channels.history'
+        payload = {'inclusive': 0, 'oldest': 0, 'limit': 50}
+        api_endpoint = 'conversations.history'
 
         payload['channel'] = channel['id']
         channel_history = self.slack_api_http(api_endpoint=api_endpoint,
                                               payload=payload)
         (last_message_datetime, is_user) = self.get_last_message_timestamp(
             channel_history, datetime.fromtimestamp(float(channel['created'])))
+        print(last_message_datetime)
         # mark inactive if last message is too old, but don't
         # if there have been bot messages and the channel has
         # at least the minimum number of members
@@ -167,7 +170,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         # self.settings.get('skip_channel_str')
         # if the channel purpose contains the string self.settings.get('skip_channel_str'), we'll skip it.
         info_payload = {'channel': channel['id']}
-        channel_info = self.slack_api_http(api_endpoint='channels.info',
+        channel_info = self.slack_api_http(api_endpoint='conversations.info',
                                            payload=info_payload,
                                            method='GET')
         channel_purpose = channel_info['channel']['purpose']['value']
@@ -198,7 +201,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
 
     def archive_channel(self, channel, alert):
         """ Archive a channel, and send alert to slack admins. """
-        api_endpoint = 'channels.archive'
+        api_endpoint = 'conversations.archive'
         stdout_message = 'Archiving channel... %s' % channel['name']
         self.logger.info(stdout_message)
 
@@ -208,15 +211,14 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             payload = {'channel': channel['id']}
             self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
             self.logger.info(stdout_message)
-    
+
     def join_channel(self, channel_name, channel_id, message):
         """ Joins a channel so that the bot has access to message and archive. """
-        join_api_endpoint='channels.join' 
-        message_api_endpoin='channles.message'
-        join_payload = {'name': channel_name}
+        join_api_endpoint='conversations.join'
+        join_payload = {'channel': channel_id}
         channel_info = self.slack_api_http(api_endpoint=join_api_endpoint, payload=join_payload)
-        already_in_channel = channel_info.get('already_in_channel', False)
-        if not already_in_channel:
+        join_warning = channel_info.get('warning', False)
+        if not join_warning:
             self.send_channel_message(channel_id, message)
 
     def send_admin_report(self, channels):
