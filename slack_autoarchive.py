@@ -130,8 +130,6 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             if 'subtype' in message and message[
                     'subtype'] in self.settings.get('skip_subtypes'):
                 continue
-            if 'bot_id' in message: # is a bot message
-                continue
             last_message_datetime = datetime.fromtimestamp(float(
                 message['ts']))
             break
@@ -155,7 +153,6 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
                                               payload=payload)
         (last_message_datetime, is_user) = self.get_last_message_timestamp(
             channel_history, datetime.fromtimestamp(float(channel['created'])))
-        print(last_message_datetime)
         # mark inactive if last message is too old, but don't
         # if there have been bot messages and the channel has
         # at least the minimum number of members
