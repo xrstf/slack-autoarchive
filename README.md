@@ -10,6 +10,8 @@
 
 - `channels:read`
 - `channels:manage`
+- `channels:history`
+- `channels:join`
 - `chat:write`
 - `groups:read`
 
