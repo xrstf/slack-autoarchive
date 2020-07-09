@@ -21,24 +21,25 @@
 
 ## Example Usages
 
-`USER_SLACK_TOKEN` and `BOT_SLACK_TOKEN` must be exposed as environment variables before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
+`BOT_SLACK_TOKEN` must be exposed as environment variables before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
 ```
 # Run the script in dry run archive mode...This will output a list of channels that will be archived.
-USER_SLACK_TOKEN=<USER_SLACK_TOKEN> BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
+BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
 
 # Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
-DRY_RUN=false USER_SLACK_TOKEN=<USER_SLACK_TOKEN> BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
+DRY_RUN=false BOT_SLACK_TOKEN=<BOT_SLACK_TOKEN> python slack_autoarchive.py
 ```
 
 As an alternative to passing in environment variables through the command line, add a `.env` file to your project root:
 
 ```
-USER_SLACK_TOKEN=xoxp-
 BOT_SLACK_TOKEN=xoxb-
 ADMIN_CHANNEL=
 ```
 
 However, it may be best to always pass the `DRY_RUN` variable through the command line to avoid accidental archives.
+
+NOTE: On the first run with `DRY_RUN=false` it will only add the bot to every channel - only on a subsequent run will channels be archived.
 
 ## How can I exempt my channel from being archived?
 
