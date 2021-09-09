@@ -145,12 +145,20 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             return (last_message_datetime, False)  # no messages
 
         for message in channel_history['messages']:
+            # ignore messages with some subtypes
             if 'subtype' in message and message[
                     'subtype'] in self.settings.get('skip_subtypes'):
                 continue
+
+            # messages sent by us ourselves do not have a subtype, so
+            # we need to detect them differently
+            if 'bot_profile' in message:
+                continue
+
             last_message_datetime = datetime.fromtimestamp(float(
                 message['ts']))
             break
+
         # for folks with the free plan, sometimes there is no last message,
         # then just set last_message_datetime to epoch
         if not last_message_datetime:
