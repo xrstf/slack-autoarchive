@@ -163,6 +163,8 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         payload = {'inclusive': 0, 'oldest': 0, 'limit': 50}
         api_endpoint = 'conversations.history'
 
+        self.logger.info('Checking #%s...' % channel_name)
+
         payload['channel'] = channel['id']
         channel_history = self.slack_api_http(api_endpoint=api_endpoint,
                                               payload=payload)
@@ -239,7 +241,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
 
     def send_admin_report(self, channels):
         """ Optionally this will message admins with which channels were archived. """
-        if self.settings.get('admin_channel'):
+        if self.settings.get('admin_channel') and len(channels) > 0:
             channel_names = ', '.join('#' + channel['name']
                                       for channel in channels)
             admin_msg = 'Archiving %d channels: %s' % (len(channels),
