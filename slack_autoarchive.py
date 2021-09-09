@@ -227,15 +227,14 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
     def archive_channel(self, channel, alert):
         """ Archive a channel, and send alert to slack admins. """
         api_endpoint = 'conversations.archive'
-        stdout_message = 'Archiving channel... %s' % channel['name']
-        self.logger.info(stdout_message)
+
+        self.logger.info('Archiving...')
 
         if not self.settings.get('dry_run'):
             channel_message = alert.format(self.settings.get('days_inactive'))
             self.send_channel_message(channel['id'], channel_message)
             payload = {'channel': channel['id']}
             self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
-            self.logger.info(stdout_message)
 
     def join_channel(self, channel_name, channel_id, message):
         """ Joins a channel so that the bot has access to message and archive. """
