@@ -131,6 +131,9 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
                 'num_members': channel['num_members'],
                 'is_member': channel['is_member']
             })
+
+        all_channels.sort(key=lambda channel: channel['name'])
+
         return all_channels
 
     def get_last_message_timestamp(self, channel_history, too_old_datetime):
@@ -157,7 +160,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             return (last_bot_message_datetime, False)
         return (last_message_datetime, True)
 
-    def is_channel_disused(self, channel, too_old_datetime):
+    def is_channel_unused(self, channel, too_old_datetime):
         """ Return True or False depending on if a channel is "active" or not.  """
         num_members = channel['num_members']
         payload = {'inclusive': 0, 'oldest': 0, 'limit': 50}
@@ -264,18 +267,22 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         archived_channels = []
 
         # Add bot to all channels
+        self.logger.info('Ensuring bot has joined all channels...')
+
         for channel in self.get_all_channels():
             if not  channel['is_member']:
                 self.join_channel(channel['name'], channel['id'], alert_templates['join_channel_template'])
 
         # Only able to archive channels that the bot is a member of
+        self.logger.info('Checking channel activities...')
+
         for channel in self.get_all_channels():
             if channel['is_member']:
               channel_whitelisted = self.is_channel_whitelisted(
                   channel, whitelist_keywords)
-              channel_disused = self.is_channel_disused(
+              channel_unused = self.is_channel_unused(
                   channel, self.settings.get('too_old_datetime'))
-              if (not channel_whitelisted and channel_disused):
+              if (not channel_whitelisted and channel_unused):
                   archived_channels.append(channel)
                   self.archive_channel(channel,
                                        alert_templates['channel_template'])
