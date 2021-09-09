@@ -163,7 +163,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         payload = {'inclusive': 0, 'oldest': 0, 'limit': 50}
         api_endpoint = 'conversations.history'
 
-        self.logger.info('Checking #%s...' % channel_name)
+        self.logger.info('Checking #%s...' % channel['name'])
 
         payload['channel'] = channel['id']
         channel_history = self.slack_api_http(api_endpoint=api_endpoint,
