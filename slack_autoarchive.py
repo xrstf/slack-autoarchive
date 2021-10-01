@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This program lets you do archive slack channels which are no longer active.
+This program lets you archive slack channels which are no longer active.
 """
 
 # standard imports
@@ -84,20 +84,17 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             else:
                 response = requests.get(uri, headers=header, params=payload)
 
-            if response.status_code == requests.codes.ok and 'error' in response.json(
-            ) and response.json()['error'] == 'not_authed':
+            if response.status_code == requests.codes.ok and 'error' in response.json() and response.json()['error'] == 'not_authed':
                 self.logger.error(
                     'Need to setup auth. eg, BOT_SLACK_TOKEN=<secret token> python slack-autoarchive.py'
                 )
                 sys.exit(1)
-            elif response.status_code == requests.codes.ok and response.json(
-            )['ok']:
+            elif response.status_code == requests.codes.ok and response.json()['ok']:
                 return response.json()
             elif response.status_code == requests.codes.too_many_requests:
                 retry_timeout = float(response.headers['Retry-After'])
                 # pylint: disable=too-many-function-args
-                return self.slack_api_http(api_endpoint, payload, method,
-                                           False, retry_timeout)
+                return self.slack_api_http(api_endpoint, payload, method, False, retry_timeout)
         except Exception as error_msg:
             raise Exception(error_msg)
         return None
@@ -108,16 +105,14 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         api_endpoint = 'conversations.list'
 
         channels = []
-        resp = self.slack_api_http(api_endpoint=api_endpoint,
-                                       payload=payload)
+        resp = self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
         channels.extend(resp['channels'])
 
         while resp.get("response_metadata"):
             metadata = resp.get("response_metadata")
             if metadata.get('next_cursor'):
                 payload['cursor'] = metadata.get('next_cursor')
-                resp = self.slack_api_http(api_endpoint=api_endpoint,
-                                           payload=payload)
+                resp = self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
                 channels.extend(resp['channels'])
             else:
                 break
@@ -146,8 +141,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
 
         for message in channel_history['messages']:
             # ignore messages with some subtypes
-            if 'subtype' in message and message[
-                    'subtype'] in self.settings.get('skip_subtypes'):
+            if 'subtype' in message and message['subtype'] in self.settings.get('skip_subtypes'):
                 continue
 
             # messages sent by us ourselves do not have a subtype, so
@@ -155,8 +149,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             if 'bot_profile' in message:
                 continue
 
-            last_message_datetime = datetime.fromtimestamp(float(
-                message['ts']))
+            last_message_datetime = datetime.fromtimestamp(float(message['ts']))
             break
 
         # for folks with the free plan, sometimes there is no last message,
@@ -177,8 +170,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         self.logger.info('Checking #%s...' % channel['name'])
 
         payload['channel'] = channel['id']
-        channel_history = self.slack_api_http(api_endpoint=api_endpoint,
-                                              payload=payload)
+        channel_history = self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
         (last_message_datetime, is_user) = self.get_last_message_timestamp(
             channel_history, datetime.fromtimestamp(float(channel['created'])))
         # mark inactive if last message is too old, but don't
@@ -186,8 +178,8 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         # at least the minimum number of members
         min_members = self.settings.get('min_members')
         has_min_users = (min_members == 0 or min_members > num_members)
-        return last_message_datetime <= too_old_datetime and (not is_user
-                                                              or has_min_users)
+
+        return last_message_datetime <= too_old_datetime and (not is_user or has_min_users)
 
     # If you add channels to the WHITELIST_KEYWORDS constant they will be exempt from archiving.
     def is_channel_whitelisted(self, channel, white_listed_channels):
@@ -195,14 +187,10 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
         # self.settings.get('skip_channel_str')
         # if the channel purpose contains the string self.settings.get('skip_channel_str'), we'll skip it.
         info_payload = {'channel': channel['id']}
-        channel_info = self.slack_api_http(api_endpoint='conversations.info',
-                                           payload=info_payload,
-                                           method='GET')
+        channel_info = self.slack_api_http(api_endpoint='conversations.info', payload=info_payload, method='GET')
         channel_purpose = channel_info['channel']['purpose']['value']
         channel_topic = channel_info['channel']['topic']['value']
-        if self.settings.get(
-                'skip_channel_str') in channel_purpose or self.settings.get(
-                    'skip_channel_str') in channel_topic:
+        if self.settings.get('skip_channel_str') in channel_purpose or self.settings.get('skip_channel_str') in channel_topic:
             return True
 
         # check the white listed channels (file / env)
@@ -210,6 +198,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             wl_channel_name = white_listed_channel.strip('#')
             if wl_channel_name in channel['name']:
                 return True
+
         return False
 
     def send_channel_message(self, channel_id, message):
@@ -220,9 +209,7 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             'text': message
         }
         api_endpoint = 'chat.postMessage'
-        self.slack_api_http(api_endpoint=api_endpoint,
-                            payload=payload,
-                            method='POST')
+        self.slack_api_http(api_endpoint=api_endpoint, payload=payload, method='POST')
 
     def archive_channel(self, channel, message):
         """ Archive a channel, and send alert to slack admins. """
@@ -236,15 +223,12 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
             payload = {'channel': channel['id']}
             self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
 
-    def join_channel(self, channel_name, channel_id, message):
+    def join_channel(self, channel_name, channel_id):
         """ Joins a channel so that the bot has access to message and archive. """
         if not self.settings.get('dry_run'):
           join_api_endpoint='conversations.join'
           join_payload = {'channel': channel_id}
-          channel_info = self.slack_api_http(api_endpoint=join_api_endpoint, payload=join_payload)
-          join_warning = channel_info.get('warning', False)
-          if not join_warning:
-              self.send_channel_message(channel_id, message)
+          self.slack_api_http(api_endpoint=join_api_endpoint, payload=join_payload)
         else:
           self.logger.info(
             'THIS IS A DRY RUN. BOT would have joined %s.' % channel_name)
@@ -252,14 +236,11 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
     def send_admin_report(self, channels):
         """ Optionally this will message admins with which channels were archived. """
         if self.settings.get('admin_channel') and len(channels) > 0:
-            channel_names = ', '.join('#' + channel['name']
-                                      for channel in channels)
-            admin_msg = 'Archiving %d channels: %s' % (len(channels),
-                                                       channel_names)
+            channel_names = ', '.join('#' + channel['name'] for channel in channels)
+            admin_msg = 'Archiving %d channels: %s' % (len(channels), channel_names)
             if self.settings.get('dry_run'):
                 admin_msg = '[DRY RUN] %s' % admin_msg
-            self.send_channel_message(self.settings.get('admin_channel'),
-                                      admin_msg)
+            self.send_channel_message(self.settings.get('admin_channel'), admin_msg)
 
     def main(self):
         """
@@ -278,21 +259,19 @@ This script was run from a fork of this repo: https://github.com/Symantec/slack-
 
         for channel in self.get_all_channels():
             if not  channel['is_member']:
-                self.join_channel(channel['name'], channel['id'], message_templates['join_channel_template'])
+                self.join_channel(channel['name'], channel['id'])
 
         # Only able to archive channels that the bot is a member of
         self.logger.info('Checking channel activities...')
 
         for channel in self.get_all_channels():
             if channel['is_member']:
-              channel_whitelisted = self.is_channel_whitelisted(
-                  channel, whitelist_keywords)
-              channel_unused = self.is_channel_unused(
-                  channel, self.settings.get('too_old_datetime'))
+              channel_whitelisted = self.is_channel_whitelisted(channel, whitelist_keywords)
+              channel_unused = self.is_channel_unused(channel, self.settings.get('too_old_datetime'))
+
               if (not channel_whitelisted and channel_unused):
                   archived_channels.append(channel)
-                  self.archive_channel(channel,
-                                       message_templates['channel_template'])
+                  self.archive_channel(channel, message_templates['channel_template'])
 
         self.send_admin_report(archived_channels)
 
